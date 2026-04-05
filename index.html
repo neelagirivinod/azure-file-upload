@@ -69,6 +69,28 @@
         a.target = "_blank";
 
 li.appendChild(a);
+
+// Delete button
+const delBtn = document.createElement("button");
+delBtn.innerText = "Delete";
+delBtn.style.marginLeft = "10px";
+
+delBtn.onclick = async () => {
+  if (!confirm("Delete this file?")) return;
+
+  const deleteUrl =
+    sasParts[0] + "/" + encodeURIComponent(name) + "?" + sasParts[1];
+
+  const resp = await fetch(deleteUrl, { method: "DELETE" });
+
+  if (resp.ok) {
+    listFiles(); // refresh list
+  } else {
+    alert("Delete failed");
+  }
+};
+
+li.appendChild(delBtn);
 list.appendChild(li);
 
       }
