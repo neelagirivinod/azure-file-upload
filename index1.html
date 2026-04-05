@@ -1,1 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>File Upload</title>
+</head>
+<body>
+
+  <h3>Upload a file</h3>
+
+  <input type="file" id="fileInput">
+  <button onclick="upload()">Upload</button>
+
+  <p id="status"></p>
+
+  <script>
+    async function upload() {
+      const file = document.getElementById("fileInput").files[0];
+      if (!file) {
+        alert("Select a file first");
+        return;
+      }
+
+      const containerSasUrl =
+ "https://vinodblobfiles2026.blob.core.windows.net/uploads-v1?sp=racwdl&st=2026-04-04T15:27:34Z&se=2026-04-23T23:42:34Z&spr=https&sv=2024-11-04&sr=c&sig=ZqwMis4uxaMZ0DUbg3WvnNJEd9EJ3%2FLjWsrDOn1ipO4%3D";
+    const sasParts = containerSasUrl.split("?");
+      const uploadUrl =
+        sasParts[0] + '/' + encodeURIComponent(file.name) + '?' + sasParts[1];
+
+      document.getElementById("status").innerText = "Uploading...";
+
+      const response = await fetch(uploadUrl, {
+        method: "PUT",
+        body: file,
+        headers: { "x-ms-blob-type": "BlockBlob" }
+      });
+
+      document.getElementById("status").innerText =
+        response.ok ? "✅ Upload successful" : "❌ Upload failed";
+    }
+  </script>
+
+  <!-- ✅ ADD FILE LISTING STARTS HERE -->
+  <h3>Files</h3>
+  <ul id="fileList"></ul>
+
+  <script>
+    var containerSasUrl =
+ "https://vinodblobfiles2026.blob.core.windows.net/uploads-v1?sp=racwdl&st=2026-04-04T15:27:34Z&se=2026-04-23T23:42:34Z&spr=https&sv=2024-11-04&sr=c&sig=ZqwMis4uxaMZ0DUbg3WvnNJEd9EJ3%2FLjWsrDOn1ipO4%3D";
+    const sasParts = containerSasUrl.split("?");
+    async function listFiles() {
+      const response = await fetch(
+        containerSasUrl + "&restype=container&comp=list"
+      );
+
+      const xml = await response.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(xml, "text/xml");
+      const blobs = doc.getElementsByTagName("Blob");
+
+      const list = document.getElementById("fileList");
+      list.innerHTML = "";
+
+      for (let b of blobs) {
+        const name = b.getElementsByTagName("Name")[0].textContent;
+        const li = document.createElement("li");         
+        const a = document.createElement("a");
+        a.href = sasParts[0] + '/' + encodeURIComponent(name) + '?' + sasParts[1];
+        a.innerText = name;
+        a.target = "_blank";
+
+li.appendChild(a);
+
+// Delete button
+const delBtn = document.createElement("button");
+delBtn.innerText = "Delete";
+delBtn.style.marginLeft = "10px";
+
+delBtn.onclick = async () => {
+  if (!confirm("Delete this file?")) return;
+
+  const deleteUrl =
+    sasParts[0] + "/" + encodeURIComponent(name) + "?" + sasParts[1];
+
+  const resp = await fetch(deleteUrl, { method: "DELETE" });
+
+  if (resp.ok) {
+    listFiles(); // refresh list
+  } else {
+    alert("Delete failed");
+  }
+};
+
+li.appendChild(delBtn);
+list.appendChild(li);
+
+      }
+    }
+
+    listFiles();
+  </script>
+  <!-- ✅ ADD FILE LISTING ENDS HERE -->
+
+</body>
+</html>
 
