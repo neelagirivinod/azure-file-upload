@@ -20,30 +20,58 @@
         return;
       }
 
-      // 🔴 PASTE YOUR CONTAINER SAS URL BELOW (NO filename)
       const containerSasUrl =
-        "https://vinodblobfiles2026.blob.core.windows.net/uploads-v1?sp=racwdl&st=2026-04-04T15:27:34Z&se=2026-04-23T23:42:34Z&spr=https&sv=2024-11-04&sr=c&sig=ZqwMis4uxaMZ0DUbg3WvnNJEd9EJ3%2FLjWsrDOn1ipO4%3D";
+        "https://vinodblobfiles2026.blob.core.windows.net/uploads-v1?sp=racwdl&st=...";
 
-const sasParts = containerSasUrl.split('?');      
-const uploadUrl = sasParts[0] + '/' + encodeURIComponent(file.name) + '?' + sasParts[1];
+      const sasParts = containerSasUrl.split('?');
+      const uploadUrl =
+        sasParts[0] + '/' + encodeURIComponent(file.name) + '?' + sasParts[1];
 
       document.getElementById("status").innerText = "Uploading...";
 
       const response = await fetch(uploadUrl, {
         method: "PUT",
         body: file,
-        headers: {
-          "x-ms-blob-type": "BlockBlob"
-        }
+        headers: { "x-ms-blob-type": "BlockBlob" }
       });
 
-      if (response.ok) {
-        document.getElementById("status").innerText = "✅ Upload successful";
-      } else {
-        document.getElementById("status").innerText = "❌ Upload failed";
-      }
+      document.getElementById("status").innerText =
+        response.ok ? "✅ Upload successful" : "❌ Upload failed";
     }
   </script>
+
+  <!-- ✅ ADD FILE LISTING STARTS HERE -->
+  <h3>Files</h3>
+  <ul id="fileList"></ul>
+
+  <script>
+    const containerSasUrl =
+      "https://vinodblobfiles2026.blob.core.windows.net/uploads-v1?sp=racwdl&st=...";
+
+    async function listFiles() {
+      const response = await fetch(
+        containerSasUrl + "&restype=container&comp=list"
+      );
+
+      const xml = await response.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(xml, "text/xml");
+      const blobs = doc.getElementsByTagName("Blob");
+
+      const list = document.getElementById("fileList");
+      list.innerHTML = "";
+
+      for (let b of blobs) {
+        const name = b.getElementsByTagName("Name")[0].textContent;
+        const li = document.createElement("li");
+        li.innerText = name;
+        list.appendChild(li);
+      }
+    }
+
+    listFiles();
+  </script>
+  <!-- ✅ ADD FILE LISTING ENDS HERE -->
 
 </body>
 </html>
