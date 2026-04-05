@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>File Upload</title>
+</head>
+<body>
+
+  <h3>Upload a file</h3>
+
+  <input type="file" id="fileInput">
+  <button onclick="upload()">Upload</button>
+
+  <p id="status"></p>
+
+  <script>
+    async function upload() {
+      const file = document.getElementById("fileInput").files[0];
+      if (!file) {
+        alert("Select a file first");
+        return;
+      }
+
+      // 🔴 PASTE YOUR CONTAINER SAS URL BELOW (NO filename)
+      const containerSasUrl =
+        "https://vinodblobfiles2026.blob.core.windows.net/uploads-v1?sp=racwdl&st=2026-04-04T15:27:34Z&se=2026-04-23T23:42:34Z&spr=https&sv=2024-11-04&sr=c&sig=ZqwMis4uxaMZ0DUbg3WvnNJEd9EJ3%2FLjWsrDOn1ipO4%3D";
+
+const sasParts = containerSasUrl.split('?');      
+const uploadUrl = sasParts[0] + '/' + encodeURIComponent(file.name) + '?' + sasParts[1];
+
+      document.getElementById("status").innerText = "Uploading...";
+
+      const response = await fetch(uploadUrl, {
+        method: "PUT",
+        body: file,
+        headers: {
+          "x-ms-blob-type": "BlockBlob"
+        }
+      });
+
+      if (response.ok) {
+        document.getElementById("status").innerText = "✅ Upload successful";
+      } else {
+        document.getElementById("status").innerText = "❌ Upload failed";
+      }
+    }
+  </script>
+
+</body>
+</html>
