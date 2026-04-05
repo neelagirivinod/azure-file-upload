@@ -1,105 +1,305 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>File Upload</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blob File Manager</title>
+  <style>
+    :root {
+      --bg1: #eef2ff;
+      --bg2: #ecfeff;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --primary: #0f766e;
+      --primary-hover: #0d5f59;
+      --danger: #dc2626;
+      --danger-hover: #b91c1c;
+      --border: #e2e8f0;
+      --link: #1d4ed8;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: var(--text);
+      background: linear-gradient(150deg, var(--bg1) 0%, #f8fafc 45%, var(--bg2) 100%);
+      min-height: 100vh;
+      padding: 32px 16px;
+    }
+
+    .app {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0 0 20px;
+      font-size: 2rem;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 1.25rem;
+    }
+
+    .upload-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .status {
+      margin: 10px 0 0;
+      color: var(--muted);
+      min-height: 20px;
+      font-weight: 600;
+    }
+
+    .file-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .file-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .file-list li:last-child {
+      border-bottom: none;
+    }
+
+    .file-name {
+      color: var(--link);
+      text-decoration: none;
+      word-break: break-word;
+      font-weight: 600;
+    }
+
+    .file-name:hover {
+      text-decoration: underline;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .btn-danger:hover {
+      background: var(--danger-hover);
+    }
+
+    .btn-secondary {
+      background: #334155;
+      color: #fff;
+    }
+
+    .btn-secondary:hover {
+      background: #1e293b;
+    }
+
+    @media (max-width: 640px) {
+      .file-list li {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .actions {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 <body>
+  <div class="app">
+    <h1>Blob File Manager</h1>
 
-  <h3>Upload a file</h3>
+    <section class="panel">
+      <h2>Upload a file</h2>
+      <div class="upload-row">
+        <input type="file" id="fileInput" />
+        <button class="btn btn-primary" id="uploadBtn">Upload</button>
+      </div>
+      <p id="status" class="status"></p>
+    </section>
 
-  <input type="file" id="fileInput">
-  <button onclick="upload()">Upload</button>
-
-  <p id="status"></p>
+    <section class="panel">
+      <h2>Files</h2>
+      <ul id="fileList" class="file-list"></ul>
+    </section>
+  </div>
 
   <script>
+    const containerSasUrl =
+      "https://vinodblobfiles2026.blob.core.windows.net/uploads-v1?sp=racwdl&st=2026-04-04T15:27:34Z&se=2026-04-23T23:42:34Z&spr=https&sv=2024-11-04&sr=c&sig=ZqwMis4uxaMZ0DUbg3WvnNJEd9EJ3%2FLjWsrDOn1ipO4%3D";
+
+    const fileInput = document.getElementById("fileInput");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const statusEl = document.getElementById("status");
+    const listEl = document.getElementById("fileList");
+
+    const [containerBaseUrl, sasToken] = containerSasUrl.split("?");
+
+    uploadBtn.addEventListener("click", upload);
+
     async function upload() {
-      const file = document.getElementById("fileInput").files[0];
+      const file = fileInput.files[0];
       if (!file) {
-        alert("Select a file first");
+        statusEl.textContent = "Select a file first.";
         return;
       }
 
-      const containerSasUrl =
- "https://vinodblobfiles2026.blob.core.windows.net/uploads-v1?sp=racwdl&st=2026-04-04T15:27:34Z&se=2026-04-23T23:42:34Z&spr=https&sv=2024-11-04&sr=c&sig=ZqwMis4uxaMZ0DUbg3WvnNJEd9EJ3%2FLjWsrDOn1ipO4%3D";
-    const sasParts = containerSasUrl.split("?");
-      const uploadUrl =
-        sasParts[0] + '/' + encodeURIComponent(file.name) + '?' + sasParts[1];
+      try {
+        statusEl.textContent = "Uploading...";
+        const uploadUrl = `${containerBaseUrl}/${encodeURIComponent(file.name)}?${sasToken}`;
 
-      document.getElementById("status").innerText = "Uploading...";
+        const response = await fetch(uploadUrl, {
+          method: "PUT",
+          body: file,
+          headers: { "x-ms-blob-type": "BlockBlob" }
+        });
 
-      const response = await fetch(uploadUrl, {
-        method: "PUT",
-        body: file,
-        headers: { "x-ms-blob-type": "BlockBlob" }
-      });
+        if (!response.ok) {
+          throw new Error(`Upload failed (${response.status})`);
+        }
 
-      document.getElementById("status").innerText =
-        response.ok ? "✅ Upload successful" : "❌ Upload failed";
+        statusEl.textContent = "Upload successful.";
+        fileInput.value = "";
+        await listFiles();
+      } catch (err) {
+        statusEl.textContent = `Upload failed: ${err.message}`;
+      }
     }
-  </script>
 
-  <!-- ✅ ADD FILE LISTING STARTS HERE -->
-  <h3>Files</h3>
-  <ul id="fileList"></ul>
+    async function deleteFile(fileName) {
+      try {
+        if (!confirm(`Delete "${fileName}"?`)) return;
 
-  <script>
-    var containerSasUrl =
- "https://vinodblobfiles2026.blob.core.windows.net/uploads-v1?sp=racwdl&st=2026-04-04T15:27:34Z&se=2026-04-23T23:42:34Z&spr=https&sv=2024-11-04&sr=c&sig=ZqwMis4uxaMZ0DUbg3WvnNJEd9EJ3%2FLjWsrDOn1ipO4%3D";
-    const sasParts = containerSasUrl.split("?");
+        statusEl.textContent = `Deleting ${fileName}...`;
+        const deleteUrl = `${containerBaseUrl}/${encodeURIComponent(fileName)}?${sasToken}`;
+
+        const response = await fetch(deleteUrl, { method: "DELETE" });
+
+        if (!response.ok) {
+          throw new Error(`Delete failed (${response.status})`);
+        }
+
+        statusEl.textContent = `Deleted: ${fileName}`;
+        await listFiles();
+      } catch (err) {
+        statusEl.textContent = `Delete failed: ${err.message}`;
+      }
+    }
+
     async function listFiles() {
-      const response = await fetch(
-        containerSasUrl + "&restype=container&comp=list"
-      );
+      try {
+        listEl.innerHTML = "";
+        const response = await fetch(`${containerSasUrl}&restype=container&comp=list`);
 
-      const xml = await response.text();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(xml, "text/xml");
-      const blobs = doc.getElementsByTagName("Blob");
+        if (!response.ok) {
+          throw new Error(`List failed (${response.status})`);
+        }
 
-      const list = document.getElementById("fileList");
-      list.innerHTML = "";
+        const xml = await response.text();
+        const doc = new DOMParser().parseFromString(xml, "text/xml");
+        const blobs = doc.getElementsByTagName("Blob");
 
-      for (let b of blobs) {
-        const name = b.getElementsByTagName("Name")[0].textContent;
-        const li = document.createElement("li");         
-        const a = document.createElement("a");
-        a.href = sasParts[0] + '/' + encodeURIComponent(name) + '?' + sasParts[1];
-        a.innerText = name;
-        a.target = "_blank";
+        if (blobs.length === 0) {
+          listEl.innerHTML = "<li>No files found.</li>";
+          return;
+        }
 
-li.appendChild(a);
+        for (const blob of blobs) {
+          const nameNode = blob.getElementsByTagName("Name")[0];
+          if (!nameNode) continue;
 
-// Delete button
-const delBtn = document.createElement("button");
-delBtn.innerText = "Delete";
-delBtn.style.marginLeft = "10px";
+          const fileName = nameNode.textContent;
+          const fileUrl = `${containerBaseUrl}/${encodeURIComponent(fileName)}?${sasToken}`;
 
-delBtn.onclick = async () => {
-  if (!confirm("Delete this file?")) return;
+          const li = document.createElement("li");
 
-  const deleteUrl =
-    sasParts[0] + "/" + encodeURIComponent(name) + "?" + sasParts[1];
+          const fileLink = document.createElement("a");
+          fileLink.className = "file-name";
+          fileLink.href = fileUrl;
+          fileLink.textContent = fileName;
+          fileLink.target = "_blank";
+          fileLink.rel = "noopener noreferrer";
 
-  const resp = await fetch(deleteUrl, { method: "DELETE" });
+          const actions = document.createElement("div");
+          actions.className = "actions";
 
-  if (resp.ok) {
-    listFiles(); // refresh list
-  } else {
-    alert("Delete failed");
-  }
-};
+          const downloadBtn = document.createElement("a");
+          downloadBtn.className = "btn btn-secondary";
+          downloadBtn.href = fileUrl;
+          downloadBtn.textContent = "Download";
+          downloadBtn.setAttribute("download", fileName);
 
-li.appendChild(delBtn);
-list.appendChild(li);
+          const deleteBtn = document.createElement("button");
+          deleteBtn.className = "btn btn-danger";
+          deleteBtn.textContent = "Delete";
+          deleteBtn.addEventListener("click", () => deleteFile(fileName));
 
+          actions.appendChild(downloadBtn);
+          actions.appendChild(deleteBtn);
+
+          li.appendChild(fileLink);
+          li.appendChild(actions);
+          listEl.appendChild(li);
+        }
+      } catch (err) {
+        listEl.innerHTML = `<li>${err.message}</li>`;
       }
     }
 
     listFiles();
   </script>
-  <!-- ✅ ADD FILE LISTING ENDS HERE -->
-
 </body>
 </html>
-
